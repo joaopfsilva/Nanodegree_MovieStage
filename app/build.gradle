@@ -4,8 +4,16 @@ android {
     compileSdkVersion 22
     buildToolsVersion "23.0.2"
 
+
+    packagingOptions {
+        pickFirst 'META-INF/NOTICE'
+        pickFirst 'META-INF/NOTICE.txt'
+        pickFirst 'META-INF/LICENSE'
+        pickFirst 'META-INF/LICENSE.txt'
+    }
+
+
     defaultConfig {
-        multiDexEnabled true
         applicationId "com.example.joaopfsilva.moviestage1"
         minSdkVersion 15
         targetSdkVersion 22
@@ -22,20 +30,15 @@ android {
 
 repositories {
     mavenCentral()
+    jcenter()
 }
 
 dependencies {
-
+    compile fileTree(include: ['*.jar'], dir: 'libs')
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:22.2.1'
     compile 'com.android.support:design:22.2.1'
     compile 'com.squareup.picasso:picasso:2.5.2'
-    // JAX-RS 2.0(.1)
-    compile 'javax.ws.rs:javax.ws.rs-api:2.0.1'
-
+    compile group: 'info.movito', name: 'themoviedbapi', version: '1.3'
+    compile 'org.slf4j:slf4j-android:1.7.16'
 }
-
-repositories {
-    mavenCentral()
-}
-

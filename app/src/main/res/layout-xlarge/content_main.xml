@@ -1,7 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:showIn="@layout/activity_main">
 
 
     <LinearLayout
@@ -18,31 +20,47 @@
             android:orientation="vertical"
             android:layout_marginTop="48dp">
 
-            <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:app="http://schemas.android.com/apk/res-auto"
-                xmlns:tools="http://schemas.android.com/tools"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:paddingBottom="@dimen/activity_vertical_margin"
-                android:paddingLeft="@dimen/activity_horizontal_margin"
-                android:paddingRight="@dimen/activity_horizontal_margin"
-                android:paddingTop="@dimen/activity_vertical_margin"
-                app:layout_behavior="@string/appbar_scrolling_view_behavior"
-                tools:context="com.example.joaopfsilva.moviestage1.MainActivity">
+                android:layout_gravity="center_vertical"
+                android:orientation="vertical">
 
-
-                <GridView
-                    android:id="@+id/gridView"
+                <ImageView
+                    android:id="@+id/imageView21"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:numColumns="2"
-                    android:minHeight="200dp"
-                    android:layout_alignParentBottom="true"
-                    android:layout_alignParentLeft="true"
-                    android:layout_alignParentStart="true" />
+                    android:layout_weight="1.0"
+                    android:contentDescription="last" />
 
-            </RelativeLayout>
+                <ImageView
+                    android:id="@+id/imageView22"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1.0"
+                    android:contentDescription="last" />
+            </LinearLayout>
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="0.5"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/imageView11"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0.5"
+                    android:contentDescription="inter" />
+
+                <ImageView
+                    android:id="@+id/imageView12"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="0.5"
+                    android:contentDescription="inter" />
+            </LinearLayout>
         </LinearLayout>
 
         <LinearLayout
@@ -55,8 +73,8 @@
                 android:id="@+id/nameMovie"
                 android:layout_width="fill_parent"
                 android:layout_height="58dp"
-                android:background="#00897B"
-                android:gravity="center|fill_horizontal"
+                android:background="@color/accent_material_light"
+                android:gravity="left"
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:textColor="#ffffff"
                 android:textSize="@dimen/abc_action_bar_stacked_max_height"
@@ -99,31 +117,30 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="10dp"
+                        android:layout_weight="0.2"
                         android:contentDescription="inter"
                         android:gravity="left"
                         android:textSize="@dimen/abc_text_size_large_material"
                         android:textStyle="bold" />
 
                     <TextView
+                        android:id="@+id/Duration"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:layout_weight="0.2"
+                        android:contentDescription="inter"
+                        android:gravity="left" />
+
+                    <TextView
                         android:id="@+id/rating"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="5dp"
+                        android:layout_weight="0.2"
                         android:contentDescription="inter"
                         android:gravity="left"
                         android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/IP"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="5dp"
-                        android:inputType="number|numberDecimal"
-                        android:digits="0123456789."
-                        android:contentDescription="inter"
-                        android:gravity="left"
-                        android:textStyle="bold"
-                        android:layout_weight="0.20" />
 
                 </LinearLayout>
             </LinearLayout>
@@ -139,7 +156,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:contentDescription="inter"
-                    android:textSize="10sp"/>
+                    android:textSize="@dimen/abc_text_size_large_material" />
 
             </LinearLayout>
 

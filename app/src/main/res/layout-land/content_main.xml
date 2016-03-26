@@ -57,9 +57,9 @@
                 android:layout_height="58dp"
                 android:background="#00897B"
                 android:gravity="center|fill_horizontal"
-                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:elegantTextHeight="true"
+
                 android:textColor="#ffffff"
-                android:textSize="@dimen/abc_action_bar_stacked_max_height"
                 android:textStyle="bold"
                 android:layout_marginTop="47dp" />
 
@@ -112,18 +112,6 @@
                         android:contentDescription="inter"
                         android:gravity="left"
                         android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/IP"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="5dp"
-                        android:inputType="number|numberDecimal"
-                        android:digits="0123456789."
-                        android:contentDescription="inter"
-                        android:gravity="left"
-                        android:textStyle="bold"
-                        android:layout_weight="0.20" />
 
                 </LinearLayout>
             </LinearLayout>

@@ -10,8 +10,6 @@ import android.widget.TextView;
 import com.squareup.picasso.Picasso;
 
 public class DetailMovie extends AppCompatActivity {
-    private String API_KEY = "";
-    private String BASE_IMG_URL = "http://image.tmdb.org/t/p/w185/";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -19,6 +17,8 @@ public class DetailMovie extends AppCompatActivity {
         setContentView(R.layout.activity_detail_movie);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        assert getSupportActionBar() != null;
 
         getSupportActionBar().setHomeButtonEnabled(true);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -46,13 +46,13 @@ public class DetailMovie extends AppCompatActivity {
         yearRelease.setText(getIntent().getStringExtra("yearRelease").substring(0, 4));
 
         // rating
-        rating.setText(getIntent().getStringExtra("rating") + "/10");
+        rating.setText(String.format("%s/10", getIntent().getStringExtra("rating")));
+
 
         //synopsis
         synopsis.setText(getIntent().getStringExtra("synopsis"));
 
     }
-
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

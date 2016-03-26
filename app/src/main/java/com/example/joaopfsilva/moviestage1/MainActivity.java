@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static Toast toast;
     private static final Logger LOGGER = LoggerFactory.getLogger(MainActivity.class);
 
-    private String API_KEY = "66fcfb532e5ca2995b845341b8dd5de1";
+    private String API_KEY = "";
     private String BASE_IMG_URL = "http://image.tmdb.org/t/p/w342/";
     private String COUNTRY = "USA";
     private Boolean TO_RATE_MODE = false;

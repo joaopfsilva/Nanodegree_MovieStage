@@ -3,17 +3,21 @@ package com.example.joaopfsilva.moviestage1;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.method.ScrollingMovementMethod;
 import android.view.MenuItem;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.squareup.picasso.Picasso;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class DetailMovie extends AppCompatActivity {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DetailMovie.class);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        LOGGER.info("DetailMovie: onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_detail_movie);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -30,12 +34,11 @@ public class DetailMovie extends AppCompatActivity {
         TextView synopsis = (TextView) findViewById(R.id.synopsis);
         String movietitle = getIntent().getStringExtra("name_movie");
         if (movietitle.length() > 20) {
-            originalTitle.setTextSize(originalTitle.getTextSize() / 3);
+            originalTitle.setTextSize(originalTitle.getTextSize() / 4);
 
         }
         //get poster url path
         String moviePosterUrl = getIntent().getStringExtra("urlPath");
-
         // originalTilte
         originalTitle.setText(getIntent().getStringExtra("name_movie"));
 
@@ -47,9 +50,7 @@ public class DetailMovie extends AppCompatActivity {
         yearRelease.setText(getIntent().getStringExtra("yearRelease").substring(0, 4));
 
         // rating
-
         rating.setText(String.format("%s/10", getIntent().getStringExtra("rating")));
-
 
         //synopsis
         synopsis.setText(getIntent().getStringExtra("synopsis"));
@@ -58,16 +59,10 @@ public class DetailMovie extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
         switch (id) {
-            case R.id.action_settings:
-                return true;
-
             case android.R.id.home:
                 DetailMovie.this.finish();
                 return true;

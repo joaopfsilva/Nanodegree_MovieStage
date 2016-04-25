@@ -3,4 +3,7 @@
     <string name="action_settings">Settings</string>
     <string name="title_activity_detail_movie">DetailMovie</string>
     <string name="mark_as_favorite">MARK AS FAVORITE</string>
+    <string name="rating_movie">%1$s /10</string>
+    <string name="inter">inter</string>
+    <string name="last">last</string>
 </resources>

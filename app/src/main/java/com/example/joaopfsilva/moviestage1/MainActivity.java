@@ -3,6 +3,7 @@ package com.example.joaopfsilva.moviestage1;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.support.design.widget.FloatingActionButton;
@@ -27,30 +28,24 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-import info.movito.themoviedbapi.TmdbApi;
-import info.movito.themoviedbapi.TmdbMovies;
-import info.movito.themoviedbapi.model.MovieDb;
+import static android.widget.AdapterView.OnItemClickListener;
+import static android.widget.AdapterView.OnItemLongClickListener;
+import static java.lang.String.valueOf;
 
-import static android.net.ConnectivityManager.TYPE_MOBILE;
-import static android.net.ConnectivityManager.TYPE_WIFI;
-import static java.lang.String.format;
-
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, OnItemClickListener {
 
     private static Toast toast;
     private static final Logger LOGGER = LoggerFactory.getLogger(MainActivity.class);
 
-    private String API_KEY = "66fcfb532e5ca2995b845341b8dd5de1";
-    private String BASE_IMG_URL = "http://image.tmdb.org/t/p/w342/";
-    private String COUNTRY = "USA";
+    private String posterSize = "w342";
     private Boolean TO_RATE_MODE = false;
-
-    TmdbMovies movies = null;
+    private String sortBy = "popularity.desc"; //"rated.desc"
+    private String page = "1"; //page to be loaded
 
     StrictMode.ThreadPolicy policy = null;
 
     GridView gv;
-    List<MovieDb> urlMovies;
+    HandleMovieAPI movieApi = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,104 +59,50 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        if (connectedDevice()) {
-            movies = new TmdbApi(API_KEY).getMovies();
-        } else
-
-        {
-            handleToastMsg("No internet connection!!", Toast.LENGTH_LONG);
+        if (!isConnected()) {
+            handleToastMsg("No Internet Connection", Toast.LENGTH_LONG);
             return;
+        }
+        movieApi = new HandleMovieAPI();
+        movieApi.setURLMovie(sortBy, page);
+        if (!movieApi.ConnectAPI()) {
+            finish();
         }
 
         FloatingActionButton changeToRated = (FloatingActionButton) findViewById(R.id.swapOrder);
         changeToRated.setOnClickListener(this);
 
-        urlMovies = getPopularNMovies(movies, 1); //populate urlMovies with list of popular movies
-        urlMovies.addAll(getPopularNMovies(movies, 2)); //populate urlMovies with list of popular movies
-        urlMovies.addAll(getPopularNMovies(movies, 3));
-
         gv = (GridView) findViewById(R.id.gridView);
         gv.setAdapter(new GridAdapter());
+
 
         gv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                handleMovieDetail(urlMovies.get(position));
+                handleMovieDetail(movieApi.getDetailsMovie(position, posterSize));
             }
         });
 
+        gv.setOnItemLongClickListener(new OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                handleToastMsg(movieApi.getDetailsMovie(position, posterSize).get(0), Toast.LENGTH_SHORT);
+                return true;
+            }
+        });
 
-    }
-
-    public class GridAdapter extends BaseAdapter {
-        MovieDb posterpath;
-
-        @Override
-        public int getCount() {
-            return urlMovies.size();
-        }
-
-        @Override
-        public Object getItem(int position) {
-            return urlMovies.get(position);
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return 0;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            convertView = getLayoutInflater().inflate(R.layout.single_grid, parent, false);
-            ImageView iv = (ImageView) convertView.findViewById(R.id.imageView);
-
-            posterpath = (MovieDb) getItem(position); //get posterpath from object getItem
-            Picasso.with(getApplicationContext()).load(format("%s%s", BASE_IMG_URL, posterpath.getPosterPath())).into(iv);
-
-            return convertView;
-        }
-    }
-
-    private boolean connectedDevice() {
-        ConnectivityManager com = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        return com.getNetworkInfo(TYPE_MOBILE).isConnectedOrConnecting() || com.getNetworkInfo(TYPE_WIFI).isConnectedOrConnecting();
-
-    }
-
-    private List<MovieDb> getPopularNMovies(TmdbMovies movies, int page) {
-        return movies.getPopularMovies(COUNTRY, page).getResults();
-    }
-
-    private List<MovieDb> getTopRatedNMovies(TmdbMovies movies, int page) {
-        try {
-            LOGGER.info("»»»» " + movies.getLatestMovie().getOriginalTitle());
-            return movies.getTopRatedMovies(COUNTRY, page).getResults();//.getResults();
-        }catch(Exception e){
-            LOGGER.info("***** " + e.getMessage());
-        }
-        return null;
-    }
-
-    //Method to handle a Toast message, with user defined duration
-    public void handleToastMsg(String msg, int Toastduration) {
-        if (toast != null)
-            toast.cancel();
-        toast = Toast.makeText(getApplicationContext(), msg, Toastduration);
-        toast.setGravity(Gravity.CENTER_HORIZONTAL, 0, 0);
-        toast.show();
     }
 
     //Method to handle movie information to be sent to DetailMovie activity
-    private void handleMovieDetail(MovieDb movie) {
+    private void handleMovieDetail(List<String> movie) {
         if (getResources().getConfiguration().orientation == 1) {//PORTRAIT
             Intent i_detail1 = new Intent(getApplicationContext(), DetailMovie.class);
 
-            i_detail1.putExtra("name_movie", movie.getOriginalTitle());
-            i_detail1.putExtra("synopsis", movie.getOverview());
-            i_detail1.putExtra("rating", String.valueOf(movie.getVoteAverage()));
-            i_detail1.putExtra("yearRelease", movie.getReleaseDate());
-            i_detail1.putExtra("urlPath", format("%s%s", BASE_IMG_URL, movie.getPosterPath()));
+            i_detail1.putExtra("name_movie", movie.get(0));
+            i_detail1.putExtra("synopsis", movie.get(5));
+            i_detail1.putExtra("rating", valueOf(movie.get(6))); //stands for popularity
+            i_detail1.putExtra("yearRelease", movie.get(1));
+            i_detail1.putExtra("urlPath", movie.get(2));
             startActivity(i_detail1);
 
         } else { //LANDSCAPE
@@ -173,22 +114,86 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             // movieposterPath
             ImageView posterMovie = (ImageView) findViewById(R.id.poster);
-            Picasso.with(getApplicationContext()).load(BASE_IMG_URL + movie.getPosterPath()).into(posterMovie);
+            Picasso.with(getApplicationContext()).load(movie.get(2)).into(posterMovie);
 
             // yearRelease
-            yearRelease.setText(movie.getReleaseDate().substring(0, 4));
+            yearRelease.setText(movie.get(1).substring(0, 4));
 
             // rating
-            rating.setText(String.valueOf(movie.getVoteAverage()) + "/10");
+            rating.setText(getResources().getString(R.string.rating_movie));
 
             // Title
-            originalTitle.setText(movie.getOriginalTitle());
+            originalTitle.setText(movie.get(0));
 
             //synopsis
-            synopsis.setText(movie.getOverview());
+            synopsis.setText(movie.get(5));
 
         }
     }
+
+    public boolean isConnected() {
+        ConnectivityManager cm = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
+    }
+
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+    }
+
+    static class ViewHolder {
+        ImageView iv;
+        int position;
+    }
+
+    public class GridAdapter extends BaseAdapter {
+        String posterpath;
+
+        @Override
+        public int getCount() {
+            return movieApi.getMoviesTitle().size();
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return movieApi.getDetailsMovie(position, posterSize);
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return 0;
+        }
+
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            if (convertView == null) {
+                convertView = getLayoutInflater().inflate(R.layout.single_grid, parent, false);
+            }
+
+            ViewHolder holder = new ViewHolder();
+            holder.iv = (ImageView) convertView.findViewById(R.id.imageView);
+            holder.position = position;
+            convertView.setTag(holder);
+
+            posterpath = movieApi.getPosterPath(posterSize).get(position);
+            Picasso.with(getApplicationContext()).load(posterpath).into(holder.iv);
+
+            return convertView;
+        }
+    }
+
+
+    //Method to handle a Toast message, with user defined duration
+    public void handleToastMsg(String msg, int Toastduration) {
+        if (toast != null)
+            toast.cancel();
+        toast = Toast.makeText(getApplicationContext(), msg, Toastduration);
+        toast.setGravity(Gravity.CENTER_HORIZONTAL, 0, 0);
+        toast.show();
+    }
+
 
     @Override
     public void onClick(View v) {
@@ -197,26 +202,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (v.getId()) {
             case R.id.swapOrder:
                 TO_RATE_MODE = !TO_RATE_MODE;
-                if (TO_RATE_MODE) {
-                    getTopRatedNMovies(movies, 1);
-                    //handleToastMsg(getTopRatedNMovies(movies, 1), Toast.LENGTH_LONG);
-                   /* urlMovies = getTopRatedNMovies(movies, 1); //populate urlMovies with list of popular movies
-                    urlMovies.addAll(getTopRatedNMovies(movies, 2)); //populate urlMovies with list of popular movies
-                    urlMovies.addAll(getTopRatedNMovies(movies, 3));*/
-                } else {
-                    urlMovies = getPopularNMovies(movies, 1); //populate urlMovies with list of popular movies
-                    urlMovies.addAll(getPopularNMovies(movies, 2)); //populate urlMovies with list of popular movies
-                    urlMovies.addAll(getPopularNMovies(movies, 3));
+
+                if (TO_RATE_MODE) { //order by rated
+                    handleToastMsg("RATED MODE", Toast.LENGTH_SHORT);
+                    sortBy = "rated.desc";
+                    movieApi.setURLMovie(sortBy, page);
+                    movieApi.ConnectAPI();
+
+                } else { //order by popularity
+                    handleToastMsg("POPULARITY MODE", Toast.LENGTH_SHORT);
+                    sortBy = "popularity.desc";
+                    movieApi.setURLMovie(sortBy, page);
+                    movieApi.ConnectAPI();
+
                 }
 
+                gv = (GridView) findViewById(R.id.gridView);
                 gv.setAdapter(new GridAdapter());
-
-                gv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        handleMovieDetail(urlMovies.get(position));
-                    }
-                });
                 break;
         }
     }
@@ -240,9 +242,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //noinspection SimplifiableIfStatement
         switch (id) {
-            case R.id.action_settings:
-                return true;
-
             case android.R.id.home:
                 //MainActivity.this.finish();
                 return true;
@@ -251,4 +250,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         return super.onOptionsItemSelected(item);
     }
+
+
 }

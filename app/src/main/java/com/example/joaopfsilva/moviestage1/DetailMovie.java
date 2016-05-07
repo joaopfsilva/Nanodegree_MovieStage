@@ -3,9 +3,13 @@ package com.example.joaopfsilva.moviestage1;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Gravity;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.squareup.picasso.Picasso;
 
@@ -55,6 +59,28 @@ public class DetailMovie extends AppCompatActivity {
         //synopsis
         synopsis.setText(getIntent().getStringExtra("synopsis"));
 
+
+        Button favorite = (Button) findViewById(R.id.but_favorite);
+        favorite.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View view) {
+                MovieDatabase db = new MovieDatabase(getApplicationContext());
+                db.addMovie("");// sample test
+                db.getMovie("");// sample test
+            }
+        });
+    }
+
+
+    //Method to handle a Toast message, with user defined duration
+    public void handleToastMsg(String msg, int Toastduration) {
+        Toast toast = new Toast(getApplicationContext());
+        if (toast != null)
+            toast.cancel();
+        toast = Toast.makeText(getApplicationContext(), msg, Toastduration);
+        toast.setGravity(Gravity.CENTER_HORIZONTAL, 0, 0);
+        toast.show();
     }
 
     @Override

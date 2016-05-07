@@ -6,4 +6,5 @@
     <string name="rating_movie">%1$s /10</string>
     <string name="inter">inter</string>
     <string name="last">last</string>
+    <string name="MarkAsFavorite">Mark as Favorite</string>
 </resources>

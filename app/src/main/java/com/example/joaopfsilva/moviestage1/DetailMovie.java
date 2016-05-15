@@ -1,6 +1,10 @@
 package com.example.joaopfsilva.moviestage1;
 
+import android.graphics.Color;
 import android.os.Bundle;
+import android.os.SystemClock;
+import android.support.annotation.ColorInt;
+import android.support.annotation.IntegerRes;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Gravity;
@@ -8,6 +12,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -16,8 +21,23 @@ import com.squareup.picasso.Picasso;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class DetailMovie extends AppCompatActivity {
     private static final Logger LOGGER = LoggerFactory.getLogger(DetailMovie.class);
+    public MovieDatabase db = null;
+    int tm = 0;
+
+    /*
+    * When its the first time we are using the
+    * application this require a special
+    * handle. This happens because the app
+    * is executing a query to the favorite table
+    * and that table does not exist in the
+    * first use.
+    * */
+    Boolean firstUse = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,42 +56,67 @@ public class DetailMovie extends AppCompatActivity {
         TextView yearRelease = (TextView) findViewById(R.id.yearRelease);
         TextView rating = (TextView) findViewById(R.id.rating);
         TextView synopsis = (TextView) findViewById(R.id.synopsis);
-        String movietitle = getIntent().getStringExtra("name_movie");
-        if (movietitle.length() > 20) {
+        final String movietitle = getIntent().getStringExtra("name_movie");
+
+        if (movietitle.length() > 20) //pretty print the movie title to fill the screen
             originalTitle.setTextSize(originalTitle.getTextSize() / 4);
 
-        }
+
         //get poster url path
         String moviePosterUrl = getIntent().getStringExtra("urlPath");
         // originalTilte
-        originalTitle.setText(getIntent().getStringExtra("name_movie"));
+        originalTitle.setText(movietitle);
 
         // movieposterPath
         ImageView posterMovie = (ImageView) findViewById(R.id.poster);
         Picasso.with(getApplicationContext()).load(moviePosterUrl).into(posterMovie);
 
         // yearRelease
-        yearRelease.setText(getIntent().getStringExtra("yearRelease").substring(0, 4));
+        final String releaseYear = getIntent().getStringExtra("yearRelease").substring(0, 4);
+        yearRelease.setText(releaseYear);
 
         // rating
-        rating.setText(String.format("%s/10", getIntent().getStringExtra("rating")));
+        final String ratingText = String.format("%s/10", getIntent().getStringExtra("rating"));
+        rating.setText(ratingText);
 
         //synopsis
-        synopsis.setText(getIntent().getStringExtra("synopsis"));
+        final String synopsisText = getIntent().getStringExtra("synopsis");
+        synopsis.setText(synopsisText);
 
+        //trailer
+        final List<String> trailer_links = getIntent().getStringArrayListExtra("trailerLinks");
 
-        Button favorite = (Button) findViewById(R.id.but_favorite);
-        favorite.setOnClickListener(new View.OnClickListener() {
+        //movie ID in API
+        final Integer movieAPIID = Integer.valueOf(getIntent().getStringExtra("movieAPIID"));
+
+        db = new MovieDatabase(getApplicationContext());
+
+        final Button addfavorite = (Button) findViewById(R.id.but_favorite);
+        addfavorite.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View view) {
-                MovieDatabase db = new MovieDatabase(getApplicationContext());
-                db.addMovie("");// sample test
-                db.getMovie("");// sample test
+                LOGGER.info("DetailMovie: addFavorite : onClick");
+                if (db.isFavorite(movietitle)) {
+                    db.dropMovie(movietitle);
+                    handleToastMsg(movietitle + " removed from favorites!", Toast.LENGTH_SHORT);
+                    addfavorite.setBackgroundColor(getResources().getColor(R.color.button_material_light));
+                } else {
+                    db.addFavorite(movietitle, releaseYear, synopsisText, ratingText, trailer_links, movieAPIID);// add new favorite
+                    handleToastMsg(movietitle + " added to favorites!", Toast.LENGTH_SHORT);
+                    addfavorite.setBackgroundColor(Color.parseColor("#FFDFD02D"));
+                    //addfavorite.setBackgroundColor(getResources().getColor(R.color.button_material_dark));
+                }
             }
-        });
-    }
 
+        });
+
+        if (db.isFavorite(movietitle)) {
+            addfavorite.setBackgroundColor(Color.parseColor("#FFDFD02D"));//color yellow
+        } else {
+            addfavorite.setBackgroundColor(getResources().getColor(R.color.button_material_light));
+        }
+    }
 
     //Method to handle a Toast message, with user defined duration
     public void handleToastMsg(String msg, int Toastduration) {
@@ -86,7 +131,6 @@ public class DetailMovie extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-
         //noinspection SimplifiableIfStatement
         switch (id) {
             case android.R.id.home:

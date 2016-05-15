@@ -6,6 +6,8 @@ import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -26,6 +28,7 @@ public class HandleMovieAPI {
     String urlMovie = null;
     String sortBy = null;
     String page = null;
+    private static final Logger LOGGER = LoggerFactory.getLogger(MainActivity.class);
 
     JSONArray JSONresult = null;  //get jsonString from http call
 
@@ -116,12 +119,34 @@ public class HandleMovieAPI {
         return true;
     }
 
+
     public List<String> getMoviesTitle() {
         List<String> pageMovieTitle = new ArrayList<>();
 
         for (int i = 0; i < JSONresult.length(); i++) {
             try {
                 pageMovieTitle.add(i, JSONresult.getJSONObject(i).getString("title"));
+            } catch (JSONException e) {
+                Log.e("HandleMovieAPI", "getMoviesTitle: JSONException", e);
+            }
+        }
+        return pageMovieTitle;
+    }
+
+    //method to retrieve movie title of all movies with IDs in movieIDS
+    //used for favorite order
+    public List<String> getMoviesTitleFilter(List<Integer> movieIDS) {
+        List<String> pageMovieTitle = new ArrayList<>();
+        int tmpID = -1;
+        int counter = 0;
+
+        for (int i = 0; i < JSONresult.length(); i++) {
+            try {
+                tmpID = JSONresult.getJSONObject(i).getInt("id");
+                if (movieIDS.contains(tmpID)) {
+                    pageMovieTitle.add(counter, JSONresult.getJSONObject(i).getString("title"));
+                    counter = counter + 1;
+                }
             } catch (JSONException e) {
                 Log.e("HandleMovieAPI", "getMoviesTitle: JSONException", e);
             }
@@ -142,6 +167,25 @@ public class HandleMovieAPI {
         return pagePoster;
     }
 
+    public List<String> getPosterPathFilter(String size, List<Integer> movieIDs) {
+        List<String> pagePoster = new ArrayList<>();
+        int tmpID = -1;
+        int counter = 0;
+
+        for (int i = 0; i < JSONresult.length(); i++) {
+            try {
+                tmpID = JSONresult.getJSONObject(i).getInt("id");
+                if (movieIDs.contains(tmpID)) {
+                    pagePoster.add(counter, "http://image.tmdb.org/t/p/" + size + JSONresult.getJSONObject(i).getString("poster_path"));
+                    counter = counter + 1;
+                }
+            } catch (JSONException e) {
+                Log.e("HandleMovieAPI", "getPosterPath: JSONException", e);
+            }
+        }
+        return pagePoster;
+    }
+
 
     public List<String> getDetailsMovie(int position, String size) {
         List<String> details = new ArrayList<>();
@@ -154,6 +198,7 @@ public class HandleMovieAPI {
             details.add(4, JSONresult.getJSONObject(position).getString("vote_count"));
             details.add(5, JSONresult.getJSONObject(position).getString("overview"));
             details.add(6, JSONresult.getJSONObject(position).getString("vote_average"));
+            details.add(7, JSONresult.getJSONObject(position).getString("id")); //movie id in api
         } catch (JSONException e) {
             Log.e("HandleMovieAPI", "getDetailsMovie: JSONException", e);
         }

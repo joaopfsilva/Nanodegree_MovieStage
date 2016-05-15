@@ -71,13 +71,12 @@
                 android:textSize="@dimen/abc_text_size_large_material"
                 android:textStyle="bold" />
 
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/MarkAsFavorite"
-                android:id="@+id/but_favorite"
-                android:layout_weight="0.10" />
 
+            <Button
+                android:id="@+id/but_favorite"
+                android:layout_width="134dp"
+                android:layout_height="wrap_content"
+                android:text="@string/MarkAsFavorite" />
 
         </LinearLayout>
 

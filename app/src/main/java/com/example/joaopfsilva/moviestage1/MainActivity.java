@@ -26,6 +26,8 @@ import com.squareup.picasso.Picasso;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static android.widget.AdapterView.OnItemClickListener;
@@ -38,9 +40,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private static final Logger LOGGER = LoggerFactory.getLogger(MainActivity.class);
 
     private String posterSize = "w342";
-    private Boolean TO_RATE_MODE = false;
+    /*
+    * ORDER_MODE
+    * 0 -> Popularity Mode
+    * 1 -> Rated Mode
+    * 2 -> User Favorite Mode
+    * */
+    private int ORDER_MODE = 0;
     private String sortBy = "popularity.desc"; //"rated.desc"
     private String page = "1"; //page to be loaded
+
+    MovieDatabase db = null;
 
     StrictMode.ThreadPolicy policy = null;
 
@@ -75,11 +85,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         gv = (GridView) findViewById(R.id.gridView);
         gv.setAdapter(new GridAdapter());
 
-
+        //final long[] currTime = {Long.parseLong("0")};
+        //final long[] currTime2 = {Long.parseLong("0")};
         gv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
                 handleMovieDetail(movieApi.getDetailsMovie(position, posterSize));
+               /*
+                currTime[0] = SystemClock.uptimeMillis();
+                if (currTime[0] - currTime2[0] < Long.parseLong("100000"))
+                //add to favorite
+                else {
+                handleMovieDetail(movieApi.getDetailsMovie(position, posterSize));
+                }
+                currTime2[0] = currTime[0];
+                */
             }
         });
 
@@ -103,6 +124,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             i_detail1.putExtra("rating", valueOf(movie.get(6))); //stands for popularity
             i_detail1.putExtra("yearRelease", movie.get(1));
             i_detail1.putExtra("urlPath", movie.get(2));
+            i_detail1.putStringArrayListExtra("trailerLinks", new ArrayList<String>(Arrays.asList("q", "w", "e", "t", "y")));
+            i_detail1.putExtra("movieAPIID", movie.get(7)); //movie id in api
             startActivity(i_detail1);
 
         } else { //LANDSCAPE
@@ -152,11 +175,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         public int getCount() {
+            LOGGER.info("================> getCount ");
+            if (ORDER_MODE == 1) {//check favorite mode
+                db = new MovieDatabase(getApplicationContext());
+                return movieApi.getMoviesTitleFilter(db.getFavorites()).size();
+            }
             return movieApi.getMoviesTitle().size();
         }
 
         @Override
         public Object getItem(int position) {
+            LOGGER.info("================> getItem");
             return movieApi.getDetailsMovie(position, posterSize);
         }
 
@@ -177,7 +206,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             holder.position = position;
             convertView.setTag(holder);
 
-            posterpath = movieApi.getPosterPath(posterSize).get(position);
+            if (ORDER_MODE == 1) {//check favorite mode
+                db = new MovieDatabase(getApplicationContext());
+                posterpath = movieApi.getPosterPathFilter(posterSize, db.getFavorites()).get(position);
+            } else {
+                posterpath = movieApi.getPosterPath(posterSize).get(position);
+            }
             Picasso.with(getApplicationContext()).load(posterpath).into(holder.iv);
 
             return convertView;
@@ -194,33 +228,46 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         toast.show();
     }
 
-
     @Override
     public void onClick(View v) {
         LOGGER.info("ONVIEW");
 
         switch (v.getId()) {
             case R.id.swapOrder:
-                TO_RATE_MODE = !TO_RATE_MODE;
+                ORDER_MODE = (ORDER_MODE + 1) % 3;//update order mode
 
-                if (TO_RATE_MODE) { //order by rated
-                    handleToastMsg("RATED MODE", Toast.LENGTH_SHORT);
-                    sortBy = "rated.desc";
-                    movieApi.setURLMovie(sortBy, page);
-                    movieApi.ConnectAPI();
+                switch (ORDER_MODE) {
+                    case 0: //Popularity Mode
+                        sortBy = "popularity.desc";
+                        handleToastMsg("Popularity Mode", Toast.LENGTH_SHORT);
+                        movieApi.setURLMovie(sortBy, page);
+                        movieApi.ConnectAPI();
+                        break;
 
-                } else { //order by popularity
-                    handleToastMsg("POPULARITY MODE", Toast.LENGTH_SHORT);
-                    sortBy = "popularity.desc";
-                    movieApi.setURLMovie(sortBy, page);
-                    movieApi.ConnectAPI();
+                    case 2: //Rated Mode
+                        sortBy = "rated.desc";
+                        handleToastMsg("Rated Mode", Toast.LENGTH_SHORT);
+                        movieApi.setURLMovie(sortBy, page);
+                        movieApi.ConnectAPI();
+                        break;
 
+                    case 1:
+                        sortBy = "favorite";
+                        handleToastMsg("Favorite Mode", Toast.LENGTH_SHORT);
+                        db = new MovieDatabase(getApplicationContext());
+                        List<Integer> tmp = db.getFavorites();
+                        for (int i = 0; i < tmp.size(); i++)
+                            LOGGER.info("=====>  " + tmp.get(i));
+                        movieApi.getMoviesTitleFilter(db.getFavorites());
+                        break;
                 }
 
                 gv = (GridView) findViewById(R.id.gridView);
                 gv.setAdapter(new GridAdapter());
-                break;
+
         }
+
+
     }
 
 

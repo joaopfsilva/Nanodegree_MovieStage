@@ -1,6 +1,9 @@
 package com.example.joaopfsilva.moviestage1;
 
+import android.content.Intent;
+import android.database.DataSetObserver;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.annotation.ColorInt;
@@ -9,10 +12,18 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Gravity;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.RatingBar;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,6 +39,7 @@ public class DetailMovie extends AppCompatActivity {
     private static final Logger LOGGER = LoggerFactory.getLogger(DetailMovie.class);
     public MovieDatabase db = null;
     int tm = 0;
+    String[] items;
 
     /*
     * When its the first time we are using the
@@ -116,6 +128,10 @@ public class DetailMovie extends AppCompatActivity {
         } else {
             addfavorite.setBackgroundColor(getResources().getColor(R.color.button_material_light));
         }
+        LOGGER.info("»»»»");
+        handleListTrailerCreation();
+        LOGGER.info(">>>>");
+
     }
 
     //Method to handle a Toast message, with user defined duration
@@ -126,6 +142,65 @@ public class DetailMovie extends AppCompatActivity {
         toast = Toast.makeText(getApplicationContext(), msg, Toastduration);
         toast.setGravity(Gravity.CENTER_HORIZONTAL, 0, 0);
         toast.show();
+    }
+
+    private void handleListTrailerCreation() {
+        LOGGER.info("************************");
+
+        items = new String[]{"Vegetables", "Fruits", "Flower Buds", "Legumes", "Bulbs", "Tubers"};
+
+        ListView lst_trailer = (ListView) findViewById(R.id.list_trailer);
+        lst_trailer.setAdapter(new ListAdapter());
+        Helper.getListViewSize(lst_trailer); // set
+
+        lst_trailer.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(Intent.ACTION_VIEW);
+                intent.setData(Uri.parse(""));//add youtube url link
+                startActivity(intent);
+            }
+        });
+    }
+
+    static class ViewHolder {
+        ImageView iv;
+        TextView tv;
+        int position;
+    }
+
+    public class ListAdapter extends BaseAdapter {
+
+        @Override
+        public int getCount() {
+            return 10;
+        }
+
+        @Override
+        public Object getItem(int position) {
+            return "Poster " + position;
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return 0;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            if (convertView == null) {
+                convertView = getLayoutInflater().inflate(R.layout.list_item_trailer, parent, false);
+            }
+
+            ViewHolder holder = new ViewHolder();
+            holder.iv = (ImageView) convertView.findViewById(R.id.iconTrailer);
+            holder.tv = (TextView) convertView.findViewById(R.id.id_trailer_list);
+            holder.position = position;
+            holder.tv.setText("Poster " + position);
+            convertView.setTag(holder);
+
+            return convertView;
+        }
     }
 
     @Override

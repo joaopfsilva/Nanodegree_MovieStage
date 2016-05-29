@@ -92,15 +92,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
                 handleMovieDetail(movieApi.getDetailsMovie(position, posterSize));
-               /*
-                currTime[0] = SystemClock.uptimeMillis();
-                if (currTime[0] - currTime2[0] < Long.parseLong("100000"))
-                //add to favorite
-                else {
-                handleMovieDetail(movieApi.getDetailsMovie(position, posterSize));
-                }
-                currTime2[0] = currTime[0];
-                */
+
             }
         });
 
@@ -175,7 +167,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         public int getCount() {
-            LOGGER.info("================> getCount ");
             if (ORDER_MODE == 1) {//check favorite mode
                 db = new MovieDatabase(getApplicationContext());
                 return movieApi.getMoviesTitleFilter(db.getFavorites()).size();
@@ -185,7 +176,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         public Object getItem(int position) {
-            LOGGER.info("================> getItem");
             return movieApi.getDetailsMovie(position, posterSize);
         }
 
@@ -200,6 +190,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if (convertView == null) {
                 convertView = getLayoutInflater().inflate(R.layout.single_grid, parent, false);
             }
+
 
             ViewHolder holder = new ViewHolder();
             holder.iv = (ImageView) convertView.findViewById(R.id.imageView);
@@ -256,8 +247,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         handleToastMsg("Favorite Mode", Toast.LENGTH_SHORT);
                         db = new MovieDatabase(getApplicationContext());
                         List<Integer> tmp = db.getFavorites();
-                        for (int i = 0; i < tmp.size(); i++)
-                            LOGGER.info("=====>  " + tmp.get(i));
                         movieApi.getMoviesTitleFilter(db.getFavorites());
                         break;
                 }

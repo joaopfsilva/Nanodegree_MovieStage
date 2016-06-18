@@ -40,7 +40,7 @@ public class DetailMovie extends AppCompatActivity {
     public MovieDatabase db = null;
     int tm = 0;
     String[] items;
-
+    List<String> trailer_links = null;
     /*
     * When its the first time we are using the
     * application this require a special
@@ -96,7 +96,7 @@ public class DetailMovie extends AppCompatActivity {
         synopsis.setText(synopsisText);
 
         //trailer
-        final List<String> trailer_links = getIntent().getStringArrayListExtra("trailerLinks");
+        trailer_links = getIntent().getStringArrayListExtra("trailerLinks");
 
         //movie ID in API
         final Integer movieAPIID = Integer.valueOf(getIntent().getStringExtra("movieAPIID"));
@@ -145,9 +145,6 @@ public class DetailMovie extends AppCompatActivity {
     }
 
     private void handleListTrailerCreation() {
-        LOGGER.info("************************");
-
-        items = new String[]{"Vegetables", "Fruits", "Flower Buds", "Legumes", "Bulbs", "Tubers"};
 
         ListView lst_trailer = (ListView) findViewById(R.id.list_trailer);
         lst_trailer.setAdapter(new ListAdapter());
@@ -157,7 +154,7 @@ public class DetailMovie extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setData(Uri.parse(""));//add youtube url link
+                intent.setData(Uri.parse("https://www.youtube.com/watch?v=" + trailer_links.get(position)));//add youtube url link
                 startActivity(intent);
             }
         });
@@ -173,7 +170,7 @@ public class DetailMovie extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            return 10;
+            return trailer_links.size();
         }
 
         @Override
@@ -196,7 +193,7 @@ public class DetailMovie extends AppCompatActivity {
             holder.iv = (ImageView) convertView.findViewById(R.id.iconTrailer);
             holder.tv = (TextView) convertView.findViewById(R.id.id_trailer_list);
             holder.position = position;
-            holder.tv.setText("Poster " + position);
+            holder.tv.setText("Trailer " + (position+1));
             convertView.setTag(holder);
 
             return convertView;

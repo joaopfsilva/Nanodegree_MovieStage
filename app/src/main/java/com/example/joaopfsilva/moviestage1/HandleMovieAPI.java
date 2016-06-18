@@ -26,37 +26,67 @@ public class HandleMovieAPI {
     BufferedReader reader = null;
     String MovieJsonStr = null;
     String urlMovie = null;
+    String urlMovieDetail = null;
     String sortBy = null;
     String page = null;
+    String id_movie = null;
+    String API_KEY = "";
     private static final Logger LOGGER = LoggerFactory.getLogger(MainActivity.class);
 
-    JSONArray JSONresult = null;  //get jsonString from http call
+    JSONArray JSONmovieList = null;  //jsonString with movieList details
+    JSONArray JSONmovieDetail = null;  //jsonString with movie detail
 
     public HandleMovieAPI() {
     }
 
-    public void setURLMovie(String sortBy, String page) {
+    // build URL to get movie list detail
+    public boolean CallAPImovieList(String sortBy, String page) {
         this.page = page;
         this.sortBy = sortBy;
-        String API_KEY = "66fcfb532e5ca2995b845341b8dd5de1";
         urlMovie = Uri.parse("http://api.themoviedb.org/3/discover/movie").buildUpon()
                 .appendQueryParameter("page", page)
                 .appendQueryParameter("sort_by", sortBy)
                 .appendQueryParameter("api_key", API_KEY)
                 .build()
                 .toString();
+
+        //retrieve and parse json string from url defined
+        JSONmovieList = ConnectAPI(urlMovie);
+
+        if (JSONmovieList == null)
+            return false;
+        return true;
     }
 
-    public boolean ConnectAPI() {
-        if (urlMovie == null) {
+    // build URL to get details of a specific movie
+    public boolean CallAPImovieDetail(String id_movie) {
+        this.id_movie = id_movie;
+
+        urlMovieDetail = Uri.parse("http://api.themoviedb.org/3/movie/" + id_movie + "/videos").buildUpon()
+                .appendQueryParameter("api_key", API_KEY)
+                .build()
+                .toString();
+        LOGGER.info(urlMovieDetail);
+
+        //retrieve and parse json string from url defined
+        JSONmovieDetail = ConnectAPI(urlMovieDetail);
+
+        if (JSONmovieDetail == null)
             return false;
+        return true;
+    }
+
+    // handle API calls using urlMovie built in setURLMovie
+    private JSONArray ConnectAPI(String urlformat) {
+        if (urlMovie == null) {
+            return null;
         }
 
-        JSONresult = null;
+        JSONArray JSONresult = null;
 
         try {
 
-            URL url = new URL(urlMovie);
+            URL url = new URL(urlformat);
 
             urlConnection = (HttpURLConnection) url.openConnection();
             urlConnection.setRequestMethod("GET");
@@ -86,15 +116,15 @@ public class HandleMovieAPI {
         } catch (ProtocolException e) {
             Log.e("HandleMovieAPI", "ConnectAPI: ProtocolException", e);
             MovieJsonStr = null;
-            return false;
+            return null;
         } catch (MalformedURLException e) {
             Log.e("HandleMovieAPI", "ConnectAPI: MalformedURLException", e);
             MovieJsonStr = null;
-            return false;
+            return null;
         } catch (IOException e) {
             Log.e("HandleMovieAPI", "ConnectAPI: IOException ", e);
             MovieJsonStr = null;
-            return false;
+            return null;
         } finally {
             if (urlConnection != null) {
                 urlConnection.disconnect();
@@ -105,7 +135,7 @@ public class HandleMovieAPI {
                 } catch (final IOException e) {
                     Log.e("HandleMovieAPI", "ConnectAPI: Error closing stream", e);
                     //noinspection ReturnInsideFinallyBlock
-                    return false;
+                    return null;
                 }
             }
         }
@@ -114,18 +144,19 @@ public class HandleMovieAPI {
 
         } catch (JSONException e) {
             Log.e("HandleMovieAPI", "ConnectAPI: JSONException", e);
-            return false;
+            return null;
         }
-        return true;
+
+        return JSONresult;
     }
 
 
     public List<String> getMoviesTitle() {
         List<String> pageMovieTitle = new ArrayList<>();
 
-        for (int i = 0; i < JSONresult.length(); i++) {
+        for (int i = 0; i < JSONmovieList.length(); i++) {
             try {
-                pageMovieTitle.add(i, JSONresult.getJSONObject(i).getString("title"));
+                pageMovieTitle.add(i, JSONmovieList.getJSONObject(i).getString("title"));
             } catch (JSONException e) {
                 Log.e("HandleMovieAPI", "getMoviesTitle: JSONException", e);
             }
@@ -140,11 +171,11 @@ public class HandleMovieAPI {
         int tmpID = -1;
         int counter = 0;
 
-        for (int i = 0; i < JSONresult.length(); i++) {
+        for (int i = 0; i < JSONmovieList.length(); i++) {
             try {
-                tmpID = JSONresult.getJSONObject(i).getInt("id");
+                tmpID = JSONmovieList.getJSONObject(i).getInt("id");
                 if (movieIDS.contains(tmpID)) {
-                    pageMovieTitle.add(counter, JSONresult.getJSONObject(i).getString("title"));
+                    pageMovieTitle.add(counter, JSONmovieList.getJSONObject(i).getString("title"));
                     counter = counter + 1;
                 }
             } catch (JSONException e) {
@@ -157,9 +188,9 @@ public class HandleMovieAPI {
     public List<String> getPosterPath(String size) {
         List<String> pagePoster = new ArrayList<>();
 
-        for (int i = 0; i < JSONresult.length(); i++) {
+        for (int i = 0; i < JSONmovieList.length(); i++) {
             try {
-                pagePoster.add(i, "http://image.tmdb.org/t/p/" + size + JSONresult.getJSONObject(i).getString("poster_path"));
+                pagePoster.add(i, "http://image.tmdb.org/t/p/" + size + JSONmovieList.getJSONObject(i).getString("poster_path"));
             } catch (JSONException e) {
                 Log.e("HandleMovieAPI", "getPosterPath: JSONException", e);
             }
@@ -172,11 +203,11 @@ public class HandleMovieAPI {
         int tmpID = -1;
         int counter = 0;
 
-        for (int i = 0; i < JSONresult.length(); i++) {
+        for (int i = 0; i < JSONmovieList.length(); i++) {
             try {
-                tmpID = JSONresult.getJSONObject(i).getInt("id");
+                tmpID = JSONmovieList.getJSONObject(i).getInt("id");
                 if (movieIDs.contains(tmpID)) {
-                    pagePoster.add(counter, "http://image.tmdb.org/t/p/" + size + JSONresult.getJSONObject(i).getString("poster_path"));
+                    pagePoster.add(counter, "http://image.tmdb.org/t/p/" + size + JSONmovieList.getJSONObject(i).getString("poster_path"));
                     counter = counter + 1;
                 }
             } catch (JSONException e) {
@@ -191,17 +222,35 @@ public class HandleMovieAPI {
         List<String> details = new ArrayList<>();
 
         try {
-            details.add(0, JSONresult.getJSONObject(position).getString("title"));
-            details.add(1, JSONresult.getJSONObject(position).getString("release_date"));
-            details.add(2, "http://image.tmdb.org/t/p/" + size + JSONresult.getJSONObject(position).getString("poster_path"));
-            details.add(3, JSONresult.getJSONObject(position).getString("popularity"));
-            details.add(4, JSONresult.getJSONObject(position).getString("vote_count"));
-            details.add(5, JSONresult.getJSONObject(position).getString("overview"));
-            details.add(6, JSONresult.getJSONObject(position).getString("vote_average"));
-            details.add(7, JSONresult.getJSONObject(position).getString("id")); //movie id in api
+            details.add(0, JSONmovieList.getJSONObject(position).getString("title"));
+            details.add(1, JSONmovieList.getJSONObject(position).getString("release_date"));
+            details.add(2, "http://image.tmdb.org/t/p/" + size + JSONmovieList.getJSONObject(position).getString("poster_path"));
+            details.add(3, JSONmovieList.getJSONObject(position).getString("popularity"));
+            details.add(4, JSONmovieList.getJSONObject(position).getString("vote_count"));
+            details.add(5, JSONmovieList.getJSONObject(position).getString("overview"));
+            details.add(6, JSONmovieList.getJSONObject(position).getString("vote_average"));
+            details.add(7, JSONmovieList.getJSONObject(position).getString("id")); //movie id in api
         } catch (JSONException e) {
             Log.e("HandleMovieAPI", "getDetailsMovie: JSONException", e);
         }
         return details;
     }
+
+
+    public ArrayList<String> getTrailers() {
+        ArrayList<String> trailers = new ArrayList<>();
+
+        for (int i = 0; i < JSONmovieDetail.length(); i++) {
+            try {
+                trailers.add(i, JSONmovieDetail.getJSONObject(i).getString("key"));
+
+            } catch (JSONException e) {
+                Log.e("HandleMovieAPI", "getPosterPath: JSONException", e);
+            }
+        }
+
+        return trailers;
+
+    }
+
 }

@@ -74,8 +74,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             return;
         }
         movieApi = new HandleMovieAPI();
-        movieApi.setURLMovie(sortBy, page);
-        if (!movieApi.ConnectAPI()) {
+
+        if (!movieApi.CallAPImovieList(sortBy, page)) {
             finish();
         }
 
@@ -93,6 +93,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 handleMovieDetail(movieApi.getDetailsMovie(position, posterSize));
 
+
             }
         });
 
@@ -109,14 +110,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //Method to handle movie information to be sent to DetailMovie activity
     private void handleMovieDetail(List<String> movie) {
         if (getResources().getConfiguration().orientation == 1) {//PORTRAIT
+            //get detail movie information
+            boolean tmp = movieApi.CallAPImovieDetail(movie.get(7));
+            if (tmp)
+                LOGGER.info("true");
+            else
+                LOGGER.info("false");
             Intent i_detail1 = new Intent(getApplicationContext(), DetailMovie.class);
-
             i_detail1.putExtra("name_movie", movie.get(0));
             i_detail1.putExtra("synopsis", movie.get(5));
             i_detail1.putExtra("rating", valueOf(movie.get(6))); //stands for popularity
             i_detail1.putExtra("yearRelease", movie.get(1));
             i_detail1.putExtra("urlPath", movie.get(2));
-            i_detail1.putStringArrayListExtra("trailerLinks", new ArrayList<String>(Arrays.asList("q", "w", "e", "t", "y")));
+            i_detail1.putStringArrayListExtra("trailerLinks", movieApi.getTrailers());
             i_detail1.putExtra("movieAPIID", movie.get(7)); //movie id in api
             startActivity(i_detail1);
 
@@ -231,15 +237,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     case 0: //Popularity Mode
                         sortBy = "popularity.desc";
                         handleToastMsg("Popularity Mode", Toast.LENGTH_SHORT);
-                        movieApi.setURLMovie(sortBy, page);
-                        movieApi.ConnectAPI();
+                        movieApi.CallAPImovieList(sortBy, page);
                         break;
 
                     case 2: //Rated Mode
                         sortBy = "rated.desc";
                         handleToastMsg("Rated Mode", Toast.LENGTH_SHORT);
-                        movieApi.setURLMovie(sortBy, page);
-                        movieApi.ConnectAPI();
+                        movieApi.CallAPImovieList(sortBy, page);
                         break;
 
                     case 1:

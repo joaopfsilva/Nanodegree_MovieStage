@@ -17,6 +17,6 @@
         android:id="@+id/id_trailer_list"
         android:layout_gravity="center_horizontal"
         android:layout_weight="1"
-        android:textSize="@dimen/abc_action_bar_content_inset_material"
+        android:textSize="@dimen/abc_action_button_min_width_overflow_material"
         />
 </LinearLayout>
